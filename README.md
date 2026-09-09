@@ -2,6 +2,10 @@
 
 A professional, responsive Hong Kong KMB/LWB real-time bus arrival web app.
 
+## Live website
+
+**HK Bus Live:** https://hk-bus-live.vercel.app/
+
 ## Features
 
 - Real-time stop-wide ETA data with up to the next three arrivals per route
@@ -16,6 +20,7 @@ A professional, responsive Hong Kong KMB/LWB real-time bus arrival web app.
 - Route/destination filtering
 - Automatic 60-second refresh and manual refresh
 - Traditional Chinese / English interface with matched component sizing so switching language does not shift the main layout
+- Dynamic text fitting for long English stop names and route destinations while preserving fixed card sizes
 - Light / dark mode
 - Responsive desktop and mobile UI
 - Search results expand in normal document flow instead of overlapping the saved-stop/data panels
@@ -57,7 +62,9 @@ Then open `http://localhost:8000`.
 
 ## Deploy
 
-Upload the folder to Netlify, GitHub Pages, Cloudflare Pages, or another static host. Keep `index.html` at the project root.
+The current production deployment is available at **https://hk-bus-live.vercel.app/**.
+
+Upload the folder to Vercel, Netlify, GitHub Pages, Cloudflare Pages, or another static host. Keep `index.html` at the project root.
 
 ## Notes
 
@@ -75,3 +82,26 @@ The left-side **Saved stops / 收藏車站** panel has an Edit button. In Edit m
 ## Bilingual layout stability
 
 The Chinese and English interfaces use matched button widths, fixed title/metadata regions, fixed search-result row heights, and constrained route-card text areas. This prevents the main navigation, stop header, saved-stop controls, and route cards from expanding or shrinking when the language changes.
+
+## Search history
+
+The left-side **Search history / 搜尋紀錄** panel records the most recent bus stops the user actually opens, with the newest stop shown first. Up to 20 recent stops are stored locally in the browser. Search history does not automatically select a stop when the page opens, so the live ETA board still starts empty.
+
+Press **Edit / 編輯** to manage the history. A user can remove one entry with the individual ✕ button, select one or several entries with checkboxes, or choose **Select all / 全選** and then **Clear selected / 清除已選** to clear the full history. Tapping a history row outside Edit mode opens that stop again.
+## Dynamic long-name fitting
+
+Long stop names are measured against the actual space available in the current layout. Short names keep the normal large type size, while longer names are automatically reduced only as much as needed to remain on one line. The same fitting behavior is applied to the main stop title, route destinations, search-result names, saved stops, search history, and the selected stop in the map picker. The fixed-height card and panel layout is not changed, so Chinese and English modes remain aligned. The fitting is recalculated after language changes, content updates, and browser/device resizing.
+
+
+## Apple-inspired mobile redesign
+
+The mobile interface has been rebuilt around a cleaner, Apple-inspired visual system: SF-style system typography, neutral light/dark surfaces, restrained borders, soft translucency, larger touch targets, and consistent rounded geometry. On screens 720 px wide or smaller, the desktop two-column layout is flattened so **Find a bus stop** is followed immediately by the live arrival board and route results; Saved stops, Search history, and the data-source note move below the live content.
+
+The mobile header is now a compact glass navigation bar with the HK Bus Live identity, Hong Kong clock, language switch, theme control, and refresh action on one line. Search controls fill the available width, Nearby and Map actions remain balanced in two columns, STOP ID entry uses a compact inline action, and all panels stretch to the full phone width. The route ETA blocks remain three-across on normal phones rather than becoming tall one-by-one rows.
+
+When no stop is selected, the live-board statistics, favourite-stop action, and route-filter toolbar are progressively hidden, keeping the first screen focused on finding a stop. All changes preserve the same sizing logic in Traditional Chinese and English.
+
+
+## Dropdown behavior
+
+Search suggestions now open as a floating popover. The Nearby, Map, and STOP ID controls remain fixed in place while the dropdown opens and closes.
