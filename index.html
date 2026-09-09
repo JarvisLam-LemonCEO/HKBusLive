@@ -106,7 +106,16 @@
     .icon-btn { width:40px; height:40px; display:grid; place-items:center; padding:0; }
     .ghost-btn, .primary-btn { min-height: 42px; padding: 0 14px; font-weight: 750; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     #langBtn { width:112px; }
-    #refreshBtn { width:106px; }
+    #refreshBtn {
+      width:132px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      overflow:visible;
+      text-overflow:clip;
+    }
+    #refreshBtn .label { min-width:0; overflow:visible; text-overflow:clip; }
     #favStopBtn { width:138px; }
     .primary-btn { color:white; border-color:transparent; background: linear-gradient(145deg, var(--brand), var(--brand-2)); box-shadow:0 8px 20px rgba(227,27,35,.18); }
     .icon-btn:hover, .ghost-btn:hover, .chip-btn:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
