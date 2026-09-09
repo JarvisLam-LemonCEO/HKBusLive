@@ -6,6 +6,20 @@ A professional, responsive Hong Kong KMB/LWB real-time bus arrival web app.
 
 **HK Bus Live:** https://hk-bus-live.vercel.app/
 
+## Screenshots
+
+### Desktop / Laptop
+
+<p align="center">
+  <img src="screenshots/desktop.png" alt="HK Bus Live desktop and laptop interface" width="100%">
+</p>
+
+### Mobile
+
+<p align="center">
+  <img src="screenshots/mobile.png" alt="HK Bus Live mobile interface" width="390">
+</p>
+
 ## Features
 
 - Real-time stop-wide ETA data with up to the next three arrivals per route
