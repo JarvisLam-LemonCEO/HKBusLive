@@ -132,13 +132,17 @@
     }
     .search-input:focus { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent); }
     .search-icon { position:absolute; left:14px; top:14px; color:var(--muted); pointer-events:none; }
+    .search-panel { position:relative; z-index:30; overflow:visible; }
+    .search-box { z-index:40; }
     .search-results {
       display:none;
-      position:relative;
-      z-index:1;
+      position:absolute;
+      top:calc(100% + 8px);
+      left:0;
+      z-index:80;
       width:100%;
       max-height:min(420px,55vh);
-      margin-top:8px;
+      margin:0;
       overflow:auto;
       overscroll-behavior:contain;
       scrollbar-gutter:stable;
@@ -146,9 +150,14 @@
       border:1px solid var(--line);
       border-radius:14px;
       background:var(--surface-strong);
-      box-shadow:var(--shadow-sm);
+      box-shadow:0 18px 50px rgba(15,23,42,.18), var(--shadow-sm);
+      transform-origin:top center;
     }
-    .search-results.show { display:block; }
+    .search-results.show { display:block; animation:searchPopoverIn .14s ease-out; }
+    @keyframes searchPopoverIn {
+      from { opacity:0; transform:translateY(-4px) scale(.992); }
+      to { opacity:1; transform:translateY(0) scale(1); }
+    }
     .result-item { width:100%; min-height:86px; text-align:left; padding:11px 12px; border:0; border-radius:10px; color:var(--text); background:transparent; }
     .result-item:hover, .result-item.active { background:var(--surface-soft); }
     .result-name-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
@@ -596,6 +605,7 @@
         background:var(--surface);
         overflow:hidden;
       }
+      .panel.search-panel { overflow:visible; }
       .panel-pad { padding:20px; }
       .panel-title {
         min-height:46px;
@@ -625,15 +635,20 @@
         background:var(--surface-soft);
       }
       .search-icon { left:16px; top:18px; }
+      .search-panel {
+        overflow:visible;
+        z-index:60;
+      }
       .search-results {
+        top:calc(100% + 8px);
         width:100%;
-        max-height:min(420px,48dvh);
-        margin-top:10px;
+        max-height:min(390px,46dvh);
+        margin:0;
         padding:6px;
         border-color:var(--line);
         border-radius:18px;
-        background:var(--surface-soft);
-        box-shadow:none;
+        background:var(--surface-strong);
+        box-shadow:0 18px 48px rgba(15,23,42,.20);
       }
       .result-item {
         min-height:82px;
@@ -930,7 +945,7 @@
 
     <div class="layout">
       <aside class="sidebar">
-        <section class="panel panel-pad">
+        <section class="panel panel-pad search-panel">
           <div class="panel-title">
             <div>
               <div class="eyebrow" data-i18n="findStopEyebrow">快速搜尋</div>
