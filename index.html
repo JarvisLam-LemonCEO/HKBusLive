@@ -171,7 +171,7 @@
     .fav-edit-toolbar[hidden] { display:none; }
     .fav-select-all { min-width:0; display:flex; align-items:center; gap:7px; color:var(--text); font-size:11px; font-weight:800; white-space:nowrap; overflow:hidden; }
     .fav-select-all span { overflow:hidden; text-overflow:ellipsis; }
-    .fav-select-all input, .fav-check { width:16px; height:16px; margin:0; accent-color:var(--brand); flex:0 0 auto; }
+    .fav-select-all input, .fav-check, .history-check { width:16px; height:16px; margin:0; accent-color:var(--brand); flex:0 0 auto; }
     .fav-remove-selected { width:132px; min-height:32px; padding:0 8px; font-size:10px; }
     .fav-remove-selected:disabled { opacity:.45; cursor:not-allowed; transform:none; }
     .fav-list { display:flex; flex-direction:column; gap:8px; }
@@ -185,6 +185,8 @@
     .fav-copy span { display:block; color:var(--muted); font-size:10px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .fav-delete-btn { width:32px; height:32px; flex:0 0 auto; border:1px solid color-mix(in srgb,var(--danger) 30%,var(--line)); border-radius:10px; background:color-mix(in srgb,var(--danger) 7%,var(--surface-strong)); color:var(--danger); font-size:14px; }
     .fav-delete-btn:hover { background:color-mix(in srgb,var(--danger) 12%,var(--surface-strong)); }
+    .history-panel .fav-item { min-height:58px; }
+    .history-time { display:block; color:var(--muted); font-size:9px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .empty-mini { min-height:66px; padding:18px 4px 4px; text-align:center; color:var(--muted); font-size:12px; line-height:1.5; }
 
     .data-note { display:flex; gap:10px; padding:14px; align-items:flex-start; }
@@ -278,7 +280,7 @@
       .layout { grid-template-columns:1fr; }
       .sidebar { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; }
       .sidebar .panel { min-width:0; }
-      .sidebar .data-panel { grid-column:1 / -1; }
+      .sidebar .history-panel, .sidebar .data-panel { grid-column:1 / -1; }
       .route-grid { grid-template-columns:1fr 1fr; }
     }
     @media (max-width: 720px) {
@@ -444,6 +446,24 @@
           <div id="favoriteStops" class="fav-list"></div>
         </section>
 
+        <section class="panel panel-pad history-panel">
+          <div class="panel-title">
+            <div>
+              <div class="eyebrow" data-i18n="historyEyebrow">最近使用</div>
+              <h2 data-i18n="searchHistory">搜尋紀錄</h2>
+            </div>
+            <div class="fav-head-actions">
+              <span id="historyCount" class="eyebrow fav-count">0</span>
+              <button id="historyEditBtn" class="ghost-btn fav-edit-btn" type="button" data-i18n="edit">編輯</button>
+            </div>
+          </div>
+          <div id="historyEditToolbar" class="fav-edit-toolbar" hidden>
+            <label class="fav-select-all"><input id="historySelectAll" type="checkbox" /> <span data-i18n="selectAll">全選</span></label>
+            <button id="historyRemoveSelected" class="ghost-btn fav-remove-selected" type="button" disabled data-i18n="clearSelected">清除已選</button>
+          </div>
+          <div id="searchHistory" class="fav-list"></div>
+        </section>
+
         <section class="panel data-panel">
           <div class="data-note">
             <span class="status-dot" id="apiDot" aria-hidden="true"></span>
@@ -542,6 +562,8 @@
     stopSearch: $('stopSearch'), searchResults: $('searchResults'), nearbyBtn: $('nearbyBtn'), mapBtn: $('mapBtn'),
     stopIdForm: $('stopIdForm'), stopIdInput: $('stopIdInput'), favoriteStops: $('favoriteStops'), favCount: $('favCount'),
     favEditBtn: $('favEditBtn'), favEditToolbar: $('favEditToolbar'), favSelectAll: $('favSelectAll'), favRemoveSelected: $('favRemoveSelected'),
+    searchHistory: $('searchHistory'), historyCount: $('historyCount'), historyEditBtn: $('historyEditBtn'), historyEditToolbar: $('historyEditToolbar'),
+    historySelectAll: $('historySelectAll'), historyRemoveSelected: $('historyRemoveSelected'),
     apiDot: $('apiDot'), stopName: $('stopName'), stopMeta: $('stopMeta'), favStopBtn: $('favStopBtn'),
     routeCount: $('routeCount'), lastUpdated: $('lastUpdated'), countdown: $('countdown'),
     routeFilter: $('routeFilter'), favoriteOnly: $('favoriteOnly'), routeGrid: $('routeGrid'), toastWrap: $('toastWrap'),
@@ -559,6 +581,9 @@
     favoriteRoutes: readJSON('hkbus.favoriteRoutes', []),
     favoriteEditMode: false,
     selectedFavoriteStops: new Set(),
+    searchHistory: readJSON('hkbus.searchHistory', []),
+    historyEditMode: false,
+    selectedHistoryStops: new Set(),
     refreshTimer: null,
     countdownTimer: null,
     clockTimer: null,
@@ -576,7 +601,7 @@
   const I18N = {
     tc: {
       tagline:'九巴・龍運實時到站資訊', refresh:'更新', hongKongTime:'香港時間', etaAt:'到站', findStopEyebrow:'快速搜尋', findStop:'尋找巴士站',
-      searchPlaceholder:'輸入巴士站名稱…', nearby:'附近巴士站', mapFind:'地圖找站', open:'開啟', savedEyebrow:'你的捷徑', favorites:'收藏車站',
+      searchPlaceholder:'輸入巴士站名稱…', nearby:'附近巴士站', mapFind:'地圖找站', open:'開啟', savedEyebrow:'你的捷徑', favorites:'收藏車站', historyEyebrow:'最近使用', searchHistory:'搜尋紀錄',
       officialData:'官方開放數據', officialDataDesc:'資料由香港運輸署 Data.gov.hk 的 KMB/LWB API 提供。預計到站時間約每分鐘更新。',
       liveBoard:'實時到站看板', welcomeTitle:'選擇一個巴士站', welcomeDesc:'搜尋車站名稱、使用地圖或附近定位，或直接輸入 16 位 STOP ID。',
       saveStop:'收藏車站', savedStop:'已收藏', routesHere:'途經路線', lastUpdated:'最後更新', nextRefresh:'下次更新', filterRoutes:'篩選路線或目的地…',
@@ -589,11 +614,11 @@
       updated:'已更新實時資料', searchHint:'搜尋名稱', stopId:'車站 ID', kmAway:'公里', dataTime:'資料時間', directId:'直接開啟 STOP ID',
       mapEyebrow:'地圖選站', mapTitle:'在地圖上選擇巴士站', mapSearchPlaceholder:'搜尋車站名稱，在地圖上顯示結果…', myLocation:'我的位置',
       mapHint:'點選地圖上的巴士站標記以確認位置。', cancel:'取消', useThisStop:'使用此車站', sameName:'同名站', coordinates:'位置', localRef:'站柱編號', mapUnavailable:'地圖未能載入，請檢查網絡連線。',
-      edit:'編輯', done:'完成', selectAll:'全選', removeSelected:'移除已選', deleteOne:'移除此車站', selectedCount:'已選 {count} 個', confirmRemoveSelected:'確定移除已選的 {count} 個收藏車站嗎？'
+      edit:'編輯', done:'完成', selectAll:'全選', removeSelected:'移除已選', clearSelected:'清除已選', deleteOne:'移除此車站', deleteHistoryOne:'清除此紀錄', selectedCount:'已選 {count} 個', confirmRemoveSelected:'確定移除已選的 {count} 個收藏車站嗎？', noHistory:'尚未有搜尋紀錄。選擇巴士站後會顯示在這裡。', historyCleared:'已清除搜尋紀錄', confirmClearHistorySelected:'確定清除已選的 {count} 個搜尋紀錄嗎？'
     },
     en: {
       tagline:'Real-time KMB & LWB arrivals', refresh:'Refresh', hongKongTime:'Hong Kong time', etaAt:'ETA', findStopEyebrow:'Quick search', findStop:'Find a bus stop',
-      searchPlaceholder:'Type a bus stop name…', nearby:'Nearby stops', mapFind:'Find on map', open:'Open', savedEyebrow:'Your shortcuts', favorites:'Saved stops',
+      searchPlaceholder:'Type a bus stop name…', nearby:'Nearby stops', mapFind:'Find on map', open:'Open', savedEyebrow:'Your shortcuts', favorites:'Saved stops', historyEyebrow:'Recently used', searchHistory:'Search history',
       officialData:'Official open data', officialDataDesc:'Powered by the Hong Kong Transport Department KMB/LWB API on Data.gov.hk. ETA data is refreshed about every minute.',
       liveBoard:'Live arrival board', welcomeTitle:'Choose a bus stop', welcomeDesc:'Search by stop name, use the map or nearby location, or enter a 16-character STOP ID.',
       saveStop:'Save stop', savedStop:'Saved', routesHere:'Routes here', lastUpdated:'Last updated', nextRefresh:'Next refresh', filterRoutes:'Filter route or destination…',
@@ -606,7 +631,7 @@
       updated:'Live data refreshed', searchHint:'Search name', stopId:'Stop ID', kmAway:'km', dataTime:'Data time', directId:'Open STOP ID directly',
       mapEyebrow:'Map picker', mapTitle:'Choose a bus stop on the map', mapSearchPlaceholder:'Search stop name and show matches on the map…', myLocation:'My location',
       mapHint:'Tap a bus stop marker on the map to confirm its exact location.', cancel:'Cancel', useThisStop:'Use this stop', sameName:'Same name', coordinates:'Location', localRef:'Pole code', mapUnavailable:'The map could not be loaded. Please check your connection.',
-      edit:'Edit', done:'Done', selectAll:'Select all', removeSelected:'Remove selected', deleteOne:'Remove this stop', selectedCount:'{count} selected', confirmRemoveSelected:'Remove the {count} selected saved stops?'
+      edit:'Edit', done:'Done', selectAll:'Select all', removeSelected:'Remove selected', clearSelected:'Clear selected', deleteOne:'Remove this stop', deleteHistoryOne:'Clear this history item', selectedCount:'{count} selected', confirmRemoveSelected:'Remove the {count} selected saved stops?', noHistory:'No search history yet. Stops you open will appear here.', historyCleared:'Search history cleared', confirmClearHistorySelected:'Clear the {count} selected search history items?'
     }
   };
 
@@ -615,6 +640,40 @@
   function writeJSON(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
   function escapeHTML(value='') { return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c])); }
   function normalize(value='') { return String(value).toLowerCase().replace(/\s+/g,' ').trim(); }
+
+  // Dynamically shrink long single-line labels without changing card dimensions.
+  // The CSS-defined size is the maximum; JavaScript only reduces it when needed.
+  let textFitFrame = 0;
+  function fitSingleLineText(el, minSize=10) {
+    if (!el || !el.isConnected || el.clientWidth <= 0) return;
+    el.style.removeProperty('font-size');
+    const maxSize = parseFloat(getComputedStyle(el).fontSize) || 16;
+    const min = Math.min(minSize, maxSize);
+    el.style.fontSize = `${maxSize}px`;
+    if (el.scrollWidth <= el.clientWidth + 1) return;
+
+    let low = min, high = maxSize;
+    for (let i=0; i<9; i++) {
+      const mid = (low + high) / 2;
+      el.style.fontSize = `${mid}px`;
+      if (el.scrollWidth <= el.clientWidth + 1) low = mid;
+      else high = mid;
+    }
+    el.style.fontSize = `${Math.max(min, Math.floor(low * 10) / 10)}px`;
+  }
+
+  function fitResponsiveText() {
+    fitSingleLineText(els.stopName, 14);
+    document.querySelectorAll('.route-copy h3').forEach(el => fitSingleLineText(el, 11));
+    document.querySelectorAll('.result-name').forEach(el => fitSingleLineText(el, 10));
+    document.querySelectorAll('.fav-copy strong').forEach(el => fitSingleLineText(el, 10));
+    document.querySelectorAll('.map-selected strong').forEach(el => fitSingleLineText(el, 11));
+  }
+
+  function scheduleTextFit() {
+    cancelAnimationFrame(textFitFrame);
+    textFitFrame = requestAnimationFrame(fitResponsiveText);
+  }
 
   function applyTheme() {
     document.documentElement.dataset.theme = state.theme;
@@ -635,6 +694,8 @@
       renderRoutes();
     }
     renderFavoriteStops();
+    renderSearchHistory();
+    scheduleTextFit();
   }
 
   function toast(message, type='info', timeout=2800) {
@@ -725,6 +786,7 @@
       </button>`;
     }).join('');
     els.searchResults.classList.add('show');
+    scheduleTextFit();
     if (!extraMeta && normalize(els.stopSearch.value).length >= 2) {
       clearTimeout(state.localRefTimer);
       const snapshot = els.stopSearch.value;
@@ -847,6 +909,7 @@
     const ref = state.localRefs[s.stop];
     els.mapSelected.innerHTML = `<strong>${escapeHTML(stopName(s))}${ref ? ` · ${escapeHTML(ref)}`:''}</strong><span>${escapeHTML(stopSecondaryName(s))}<br>${ref ? `${escapeHTML(t('localRef'))}: ${escapeHTML(ref)} · `:''}${escapeHTML(t('coordinates'))}: ${escapeHTML(coordinatesLabel(s))} · ${escapeHTML(t('stopId'))}: ${escapeHTML(s.stop)}</span>`;
     els.mapUseBtn.disabled=false;
+    scheduleTextFit();
   }
 
   function selectStopById(stopId) {
@@ -866,6 +929,7 @@
     els.favStopBtn.disabled = false;
     els.routeFilter.disabled = false;
     els.favoriteOnly.disabled = false;
+    addSearchHistory(stop);
     await loadETA(true);
   }
 
@@ -880,6 +944,7 @@
     if (!ref) resolveLocalRefs([state.currentStop], updateStopHeader);
     const saved = isFavoriteStop(state.currentStop.stop);
     els.favStopBtn.innerHTML = `<span aria-hidden="true">${saved ? '★':'☆'}</span> <span>${saved ? t('savedStop') : t('saveStop')}</span>`;
+    scheduleTextFit();
   }
 
   function isFavoriteStop(id) { return state.favoriteStops.some(s => s.stop === id); }
@@ -958,6 +1023,103 @@
       </button>`).join('');
     }
     syncFavoriteEditUI();
+    scheduleTextFit();
+  }
+
+  function persistSearchHistory() {
+    state.searchHistory = state.searchHistory.slice(0, 20);
+    writeJSON('hkbus.searchHistory', state.searchHistory);
+    renderSearchHistory();
+  }
+
+  function historyStop(entry) {
+    const known = state.stops.find(s => s.stop === entry.stop);
+    return known ? { ...entry, ...known } : entry;
+  }
+
+  function addSearchHistory(stop) {
+    if (!stop?.stop) return;
+    const item = {
+      stop: stop.stop,
+      name_tc: stop.name_tc || stop.stop,
+      name_en: stop.name_en || stop.stop,
+      lat: stop.lat ?? '',
+      long: stop.long ?? '',
+      viewedAt: Date.now()
+    };
+    state.searchHistory = [item, ...state.searchHistory.filter(x => x.stop !== item.stop)].slice(0, 20);
+    writeJSON('hkbus.searchHistory', state.searchHistory);
+    renderSearchHistory();
+  }
+
+  function removeHistoryById(id, showMessage=true) {
+    if (!state.searchHistory.some(s => s.stop === id)) return;
+    state.searchHistory = state.searchHistory.filter(s => s.stop !== id);
+    state.selectedHistoryStops.delete(id);
+    if (!state.searchHistory.length) state.historyEditMode = false;
+    if (showMessage) toast(t('historyCleared'));
+    persistSearchHistory();
+  }
+
+  function syncHistoryEditUI() {
+    const count = state.searchHistory.length;
+    const selected = state.selectedHistoryStops.size;
+    els.historyEditBtn.textContent = state.historyEditMode ? t('done') : t('edit');
+    els.historyEditBtn.disabled = count === 0 && !state.historyEditMode;
+    els.historyEditToolbar.hidden = !state.historyEditMode || count === 0;
+    if (count === 0) {
+      els.historySelectAll.checked = false;
+      els.historySelectAll.indeterminate = false;
+      els.historyRemoveSelected.disabled = true;
+      return;
+    }
+    els.historySelectAll.checked = selected === count;
+    els.historySelectAll.indeterminate = selected > 0 && selected < count;
+    els.historyRemoveSelected.disabled = selected === 0;
+    els.historyRemoveSelected.title = t('selectedCount').replace('{count}', selected);
+  }
+
+  function formatHistoryTime(value) {
+    const d = new Date(Number(value) || Date.now());
+    try {
+      return new Intl.DateTimeFormat(state.lang === 'tc' ? 'zh-HK' : 'en-HK', {
+        timeZone:'Asia/Hong_Kong', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false
+      }).format(d);
+    } catch (_) { return ''; }
+  }
+
+  function renderSearchHistory() {
+    if (!els.searchHistory) return;
+    els.historyCount.textContent = state.searchHistory.length;
+    const validIds = new Set(state.searchHistory.map(s => s.stop));
+    state.selectedHistoryStops = new Set([...state.selectedHistoryStops].filter(id => validIds.has(id)));
+    if (!state.searchHistory.length) {
+      els.searchHistory.innerHTML = `<div class="empty-mini">${escapeHTML(t('noHistory'))}</div>`;
+      syncHistoryEditUI();
+      return;
+    }
+    if (state.historyEditMode) {
+      els.searchHistory.innerHTML = state.searchHistory.map(entry => {
+        const s = historyStop(entry);
+        const checked = state.selectedHistoryStops.has(s.stop);
+        return `<div class="fav-item fav-item-edit ${checked ? 'selected':''}" data-history-row="${escapeHTML(s.stop)}">
+          <input class="history-check" type="checkbox" data-history-select="${escapeHTML(s.stop)}" ${checked ? 'checked':''} aria-label="${escapeHTML(t('selectAll'))}" />
+          <span class="fav-copy"><strong>${escapeHTML(stopName(s))}</strong><span>${escapeHTML(s.stop)}</span><small class="history-time">${escapeHTML(formatHistoryTime(entry.viewedAt))}</small></span>
+          <button class="fav-delete-btn" type="button" data-history-remove="${escapeHTML(s.stop)}" aria-label="${escapeHTML(t('deleteHistoryOne'))}" title="${escapeHTML(t('deleteHistoryOne'))}">✕</button>
+        </div>`;
+      }).join('');
+    } else {
+      els.searchHistory.innerHTML = state.searchHistory.map(entry => {
+        const s = historyStop(entry);
+        return `<button class="fav-item" data-history-stop="${escapeHTML(s.stop)}">
+          <span class="fav-badge" aria-hidden="true">↺</span>
+          <span class="fav-copy"><strong>${escapeHTML(stopName(s))}</strong><span>${escapeHTML(s.stop)}</span><small class="history-time">${escapeHTML(formatHistoryTime(entry.viewedAt))}</small></span>
+          <span aria-hidden="true">›</span>
+        </button>`;
+      }).join('');
+    }
+    syncHistoryEditUI();
+    scheduleTextFit();
   }
 
   function routeKey(g) { return `${state.currentStop?.stop || ''}|${g.route}|${g.dest}|${g.dir}`; }
@@ -1086,6 +1248,7 @@
     els.routeGrid.querySelectorAll('[data-route-index]').forEach((btn, idx) => {
       btn.addEventListener('click', () => toggleFavoriteRoute(groups[idx]));
     });
+    scheduleTextFit();
   }
 
   function resetRefreshClock() {
@@ -1200,15 +1363,57 @@
     toast(t('favoriteRemoved'));
     persistFavoriteStops();
   });
+  els.searchHistory.addEventListener('click', e => {
+    const removeBtn = e.target.closest('[data-history-remove]');
+    if (removeBtn) { e.stopPropagation(); removeHistoryById(removeBtn.dataset.historyRemove); return; }
+    const check = e.target.closest('[data-history-select]');
+    if (check) {
+      const id = check.dataset.historySelect;
+      if (check.checked) state.selectedHistoryStops.add(id); else state.selectedHistoryStops.delete(id);
+      renderSearchHistory();
+      return;
+    }
+    const row = e.target.closest('[data-history-row]');
+    if (row && state.historyEditMode) {
+      const id = row.dataset.historyRow;
+      if (state.selectedHistoryStops.has(id)) state.selectedHistoryStops.delete(id); else state.selectedHistoryStops.add(id);
+      renderSearchHistory();
+      return;
+    }
+    const btn = e.target.closest('[data-history-stop]');
+    if (btn && !state.historyEditMode) selectStopById(btn.dataset.historyStop);
+  });
+  els.historyEditBtn.addEventListener('click', () => {
+    state.historyEditMode = !state.historyEditMode;
+    if (!state.historyEditMode) state.selectedHistoryStops.clear();
+    renderSearchHistory();
+  });
+  els.historySelectAll.addEventListener('change', () => {
+    if (els.historySelectAll.checked) state.selectedHistoryStops = new Set(state.searchHistory.map(s => s.stop));
+    else state.selectedHistoryStops.clear();
+    renderSearchHistory();
+  });
+  els.historyRemoveSelected.addEventListener('click', () => {
+    const ids = [...state.selectedHistoryStops];
+    if (!ids.length) return;
+    if (!window.confirm(t('confirmClearHistorySelected').replace('{count}', ids.length))) return;
+    const removeSet = new Set(ids);
+    state.searchHistory = state.searchHistory.filter(s => !removeSet.has(s.stop));
+    state.selectedHistoryStops.clear();
+    if (!state.searchHistory.length) state.historyEditMode = false;
+    toast(t('historyCleared'));
+    persistSearchHistory();
+  });
   els.favStopBtn.addEventListener('click', toggleFavoriteStop);
   els.refreshBtn.addEventListener('click', () => state.currentStop ? loadETA(true) : loadStops());
   els.routeFilter.addEventListener('input', renderRoutes);
   els.favoriteOnly.addEventListener('change', renderRoutes);
   els.themeBtn.addEventListener('click', () => { state.theme = state.theme === 'dark' ? 'light':'dark'; applyTheme(); });
   els.langBtn.addEventListener('click', () => { state.lang = state.lang === 'tc' ? 'en':'tc'; localStorage.setItem('hkbus.lang',state.lang); state.etaGroups = groupETA([]); applyLanguage(); if(state.currentStop) loadETA(false); });
+  window.addEventListener('resize', scheduleTextFit, { passive:true });
 
   async function init() {
-    applyTheme(); applyLanguage(); renderFavoriteStops();
+    applyTheme(); applyLanguage(); renderFavoriteStops(); renderSearchHistory();
     updateHongKongClock();
     clearInterval(state.clockTimer);
     state.clockTimer = setInterval(updateHongKongClock, 1000);
@@ -1218,6 +1423,7 @@
     // saved stops, or direct STOP ID entry.
     localStorage.removeItem('hkbus.lastStop');
     await loadStops();
+    renderSearchHistory();
   }
 
   init();
